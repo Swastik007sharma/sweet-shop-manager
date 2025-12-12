@@ -1,14 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const { register } = require('./controllers/auth.controller');
 
 const app = express();
 
 app.use(express.json());
 app.use(cors());
 
-// Minimal implementation to pass the test
-app.post('/api/auth/register', (req, res) => {
-  res.status(201).json({ message: 'User registered successfully' });
-});
+// Use the controller
+app.post('/api/auth/register', register);
 
 module.exports = app;
