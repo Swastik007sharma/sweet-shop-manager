@@ -18,7 +18,7 @@ vi.mock('react-router-dom', async () => {
 
 describe('Register Component', () => {
   it('should register a user and navigate to login', async () => {
-    // 1. Arrange: Mock successful registration
+    // 1. Arrange
     axios.post.mockResolvedValue({
       data: { success: true, message: 'User registered successfully' }
     });
@@ -29,8 +29,7 @@ describe('Register Component', () => {
       </MemoryRouter>
     );
 
-    // 2. Act: Fill form
-    // Note: We use specific placeholders to target the elements
+    // 2. Act
     const emailInput = screen.getByPlaceholderText(/your email address/i);
     const passwordInput = screen.getByPlaceholderText(/choose a password/i);
     const registerButton = screen.getByRole('button', { name: /register/i });
@@ -39,13 +38,18 @@ describe('Register Component', () => {
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
     fireEvent.click(registerButton);
 
-    // 3. Assert: API call and Navigation
+    // 3. Assert
+    // Verify API call
     await waitFor(() => {
       expect(axios.post).toHaveBeenCalledWith(
         '/api/auth/register',
         { email: 'new@user.com', password: 'password123', role: 'user' }
       );
-      expect(mockNavigate).toHaveBeenCalledWith('/login'); 
     });
+
+    // Verify Navigation (Wait up to 2 seconds for the 1 second delay to finish)
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('/login'); 
+    }, { timeout: 2000 }); 
   });
 });
