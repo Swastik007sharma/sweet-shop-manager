@@ -99,4 +99,72 @@ describe('POST /api/sweets', () => {
     expect(sweetInDb.price).toEqual(50);
     expect(sweetInDb.description).toEqual('Delicious sweet soaked in sugar syrup');
   });
+
+  it('should return 400 when name is missing', async () => {
+    // Setup: Register and login to get token
+    const userData = {
+      email: 'testuser@example.com',
+      password: 'password123',
+      role: 'admin',
+    };
+
+    await request(app).post('/api/auth/register').send(userData);
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email,
+      password: userData.password,
+    });
+
+    const token = loginRes.body.token;
+
+    // Data: Missing name field
+    const invalidData = {
+      price: 30,
+      description: 'Some description',
+    };
+
+    // Execution: Attempt to create sweet without name
+    const res = await request(app)
+      .post('/api/sweets')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidData);
+
+    // Assertion: Expect 400 Bad Request
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/name/i);
+  });
+
+  it('should return 400 when price is missing', async () => {
+    // Setup: Register and login to get token
+    const userData = {
+      email: 'admin@example.com',
+      password: 'admin123',
+      role: 'admin',
+    };
+
+    await request(app).post('/api/auth/register').send(userData);
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email,
+      password: userData.password,
+    });
+
+    const token = loginRes.body.token;
+
+    // Data: Missing price field
+    const invalidData = {
+      name: 'Jalebi',
+      description: 'Crispy and sweet',
+    };
+
+    // Execution: Attempt to create sweet without price
+    const res = await request(app)
+      .post('/api/sweets')
+      .set('Authorization', `Bearer ${token}`)
+      .send(invalidData);
+
+    // Assertion: Expect 400 Bad Request
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.success).toBe(false);
+    expect(res.body.message).toMatch(/price/i);
+  });
 });
