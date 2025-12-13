@@ -168,3 +168,41 @@ describe('POST /api/sweets', () => {
     expect(res.body.message).toMatch(/price/i);
   });
 });
+
+describe('GET /api/sweets', () => {
+  it('should return 401 if user is not logged in', async () => {
+    const res = await request(app).get('/api/sweets');
+    expect(res.statusCode).toEqual(401);
+  });
+
+  it('should return 200 and all sweets for logged in user', async () => {
+    // 1. Arrange: Create a user and get token
+    const userData = { email: 'viewer@example.com', password: 'password123', role: 'user' };
+    await request(app).post('/api/auth/register').send(userData);
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email, password: userData.password
+    });
+    const token = loginRes.body.token;
+
+    // 2. Arrange: Seed the database with a sweet
+    await Sweet.create({
+      name: 'Mysore Pak',
+      price: 60,
+      description: 'Ghee based sweet',
+      quantity: 10
+    });
+
+    // 3. Act: Request with token
+    const res = await request(app)
+      .get('/api/sweets')
+      .set('Authorization', `Bearer ${token}`);
+
+    // 4. Assert
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.success).toBe(true);
+    // Depending on your API structure, checks if data is array
+    expect(Array.isArray(res.body.data)).toBe(true);
+    expect(res.body.data.length).toBeGreaterThanOrEqual(1);
+    expect(res.body.data[0].name).toEqual('Mysore Pak');
+  });
+});
