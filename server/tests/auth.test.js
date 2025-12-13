@@ -41,3 +41,50 @@ describe('POST /api/auth/register', () => {
     expect(userInDb.email).toEqual('realuser@example.com');
   });
 });
+
+describe('POST /api/auth/login', () => {
+  it('should return 200 and a token for valid credentials', async () => {
+    // Setup: Register a user first
+    const userData = {
+      email: 'testuser@example.com',
+      password: 'securePassword123',
+      role: 'user',
+    };
+
+    await request(app).post('/api/auth/register').send(userData);
+
+    // Execution: Attempt login with correct credentials
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'testuser@example.com',
+      password: 'securePassword123',
+    });
+
+    // Assertion: Expect success with token
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('token');
+    expect(typeof res.body.token).toBe('string');
+    expect(res.body.token.length).toBeGreaterThan(0);
+  });
+
+  it('should return 401 for invalid credentials (wrong password)', async () => {
+    // Setup: Register a user first
+    const userData = {
+      email: 'anotheruser@example.com',
+      password: 'correctPassword',
+      role: 'user',
+    };
+
+    await request(app).post('/api/auth/register').send(userData);
+
+    // Execution: Attempt login with wrong password
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'anotheruser@example.com',
+      password: 'wrongPassword',
+    });
+
+    // Assertion: Expect 401 Unauthorized
+    expect(res.statusCode).toEqual(401);
+    expect(res.body).toHaveProperty('message');
+    expect(res.body.message).toMatch(/invalid|credentials|unauthorized/i);
+  });
+});
