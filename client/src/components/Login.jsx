@@ -20,9 +20,9 @@ const Login = () => {
         password,
       });
 
-      if (res.status === 200) {
+      if (res.data.success && res.data.token) {
         login(res.data);
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed');
@@ -35,7 +35,7 @@ const Login = () => {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign In
         </h2>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -83,10 +83,10 @@ const Login = () => {
         </form>
 
         <div className="text-center text-sm">
-            Don't have an account? 
-            <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
-              Register here
-            </Link>
+          Don't have an account?
+          <Link to="/register" className="font-medium text-indigo-600 hover:text-indigo-500 ml-1">
+            Register here
+          </Link>
         </div>
       </div>
     </div>

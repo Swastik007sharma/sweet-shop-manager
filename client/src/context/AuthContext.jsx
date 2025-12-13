@@ -21,10 +21,14 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = (data) => {
-    // Assuming 'data' contains { token: "...", user: { name: "Swastik", ... } }
-    setToken(data.token);
-    setUser(data.user); // Set the real user data
-    localStorage.setItem('user', JSON.stringify(data.user)); // Save user to storage
+    // Backend returns { success, message, token, user: { id, email, role } }
+    if (data.token) {
+      setToken(data.token);
+      if (data.user) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+    }
   };
 
   const logout = () => {
