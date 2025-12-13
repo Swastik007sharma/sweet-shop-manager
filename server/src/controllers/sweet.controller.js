@@ -1,3 +1,5 @@
+const Sweet = require('../models/sweet.model');
+
 /**
  * Create a new sweet
  * @route POST /api/sweets
@@ -5,12 +7,30 @@
  */
 const createSweet = async (req, res) => {
   try {
-    // Temporary placeholder response - we'll build the real logic later
+    // Extract sweet data from request body
+    const { name, price, description, imageUrl, stock } = req.body;
+
+    // Create and save the sweet to MongoDB
+    const sweet = await Sweet.create({
+      name,
+      price,
+      description,
+      imageUrl,
+      stock,
+    });
+
+    // Return the saved sweet object
     res.status(201).json({
-      message: 'Sweet created',
+      success: true,
+      message: 'Sweet created successfully',
+      data: sweet,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
   }
 };
 
