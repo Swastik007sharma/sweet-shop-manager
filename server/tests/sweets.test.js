@@ -424,3 +424,59 @@ describe('POST /api/sweets/:id/purchase', () => {
     expect(res.body.message).toMatch(/out of stock/i);
   });
 });
+
+describe('POST /api/sweets/:id/restock', () => {
+  let adminToken;
+  let userToken;
+  let sweetId;
+
+  beforeEach(async () => {
+    // 1. Create Admin
+    const adminData = { email: 'admin@example.com', password: 'password123', role: 'admin' };
+    await request(app).post('/api/auth/register').send(adminData);
+    const adminLogin = await request(app).post('/api/auth/login').send({
+      email: adminData.email, password: adminData.password
+    });
+    adminToken = adminLogin.body.token;
+
+    // 2. Create Regular User
+    const userData = { email: 'user@example.com', password: 'password123', role: 'user' };
+    await request(app).post('/api/auth/register').send(userData);
+    const userLogin = await request(app).post('/api/auth/login').send({
+      email: userData.email, password: userData.password
+    });
+    userToken = userLogin.body.token;
+
+    // 3. Create Sweet (Stock: 5)
+    const sweet = await Sweet.create({
+      name: 'Kaju Roll',
+      price: 100,
+      stock: 5
+    });
+    sweetId = sweet._id;
+  });
+
+  it('should return 403 if non-admin tries to restock', async () => {
+    const res = await request(app)
+      .post(`/api/sweets/${sweetId}/restock`)
+      .set('Authorization', `Bearer ${userToken}`)
+      .send({ quantity: 10 });
+
+    expect(res.statusCode).toEqual(403);
+  });
+
+  it('should increase stock when admin restocks', async () => {
+    const res = await request(app)
+      .post(`/api/sweets/${sweetId}/restock`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ quantity: 10 });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.stock).toEqual(15); // 5 + 10 = 15
+
+    // Verify in Database
+    const dbSweet = await Sweet.findById(sweetId);
+    expect(dbSweet.stock).toEqual(15);
+  });
+});
