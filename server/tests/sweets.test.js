@@ -2,6 +2,7 @@ const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../src/app');
 const User = require('../src/models/user.model');
+const Sweet = require('../src/models/sweet.model');
 
 require('dotenv').config();
 
@@ -53,5 +54,49 @@ describe('POST /api/sweets', () => {
     // Assertion: Expect 401 Unauthorized
     expect(res.statusCode).toEqual(401);
     expect(res.body).toHaveProperty('message');
+  });
+
+  it('should create a new sweet with valid data', async () => {
+    // Setup: Register a user and get a valid token
+    const userData = {
+      email: 'shopowner@example.com',
+      password: 'secure123',
+      role: 'admin',
+    };
+
+    // Register the user
+    await request(app).post('/api/auth/register').send(userData);
+
+    // Login to get the token
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email,
+      password: userData.password,
+    });
+
+    const token = loginRes.body.token;
+
+    // Data: Define a sweet object
+    const sweetData = {
+      name: 'Gulab Jamun',
+      price: 50,
+      description: 'Delicious sweet soaked in sugar syrup',
+    };
+
+    // Execution: POST to /api/sweets with Authorization header
+    const res = await request(app)
+      .post('/api/sweets')
+      .set('Authorization', `Bearer ${token}`)
+      .send(sweetData);
+
+    // Assertion: Expect 201 Created
+    expect(res.statusCode).toEqual(201);
+    expect(res.body).toHaveProperty('message');
+
+    // Verification: Query the Sweet model to ensure it's in the database
+    const sweetInDb = await Sweet.findOne({ name: 'Gulab Jamun' });
+    expect(sweetInDb).toBeTruthy();
+    expect(sweetInDb.name).toEqual('Gulab Jamun');
+    expect(sweetInDb.price).toEqual(50);
+    expect(sweetInDb.description).toEqual('Delicious sweet soaked in sugar syrup');
   });
 });
