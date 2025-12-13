@@ -2,10 +2,10 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import Register from '../components/Register'; 
 import { MemoryRouter } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
 
-// Mock axios and navigation
-vi.mock('axios');
+// Mock the custom axios instance
+vi.mock('../utils/axios');
 const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', async () => {
@@ -19,7 +19,7 @@ vi.mock('react-router-dom', async () => {
 describe('Register Component', () => {
   it('should register a user and navigate to login', async () => {
     // 1. Arrange
-    axios.post.mockResolvedValue({
+    api.post.mockResolvedValue({
       data: { success: true, message: 'User registered successfully' }
     });
 
@@ -41,8 +41,8 @@ describe('Register Component', () => {
     // 3. Assert
     // Verify API call
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        '/api/auth/register',
+      expect(api.post).toHaveBeenCalledWith(
+        '/auth/register',
         { email: 'new@user.com', password: 'password123', role: 'user' }
       );
     });

@@ -1,12 +1,12 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
-import Login from '../components/Login'; // This import will fail until we create the file
+import Login from '../components/Login';
 import { AuthProvider } from '../context/AuthContext';
 import { MemoryRouter } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
 
-// Mock axios and react-router-dom
-vi.mock('axios');
+// Mock the custom axios instance
+vi.mock('../utils/axios');
 
 const mockNavigate = vi.fn();
 vi.mock('react-router-dom', async () => {
@@ -20,11 +20,11 @@ vi.mock('react-router-dom', async () => {
 describe('Login Component', () => {
   it('should successfully log in a user and navigate to dashboard', async () => {
     // 1. Arrange: Mock a successful API response
-    axios.post.mockResolvedValue({
+    api.post.mockResolvedValue({
       data: {
         success: true,
         token: 'mock_jwt_token',
-        user: { role: 'user' }
+        user: { id: '123', email: 'test@user.com', role: 'user' }
       },
     });
 
@@ -47,11 +47,11 @@ describe('Login Component', () => {
 
     // 3. Assert: Check API call and Navigation
     await waitFor(() => {
-      expect(axios.post).toHaveBeenCalledWith(
-        '/api/auth/login',
+      expect(api.post).toHaveBeenCalledWith(
+        '/auth/login',
         { email: 'test@user.com', password: 'password123' }
       );
-      expect(mockNavigate).toHaveBeenCalledWith('/');
+      expect(mockNavigate).toHaveBeenCalledWith('/dashboard');
     });
   });
 });
