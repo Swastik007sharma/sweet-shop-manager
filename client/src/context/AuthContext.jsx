@@ -1,29 +1,37 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext } from 'react';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  // Initialize state from localStorage
+  // 1. Initialize BOTH token and user from localStorage
   const [token, setToken] = useState(localStorage.getItem('token') || null);
-  const [user, setUser] = useState(null); 
+  const [user, setUser] = useState(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
 
   useEffect(() => {
     if (token) {
       localStorage.setItem('token', token);
-      // Mock user object for isAuthenticated check
-      setUser({ role: 'user' }); 
     } else {
       localStorage.removeItem('token');
+      localStorage.removeItem('user'); // Cleanup user data on logout
       setUser(null);
     }
   }, [token]);
 
-  const login = (userData) => {
-    setToken(userData.token);
+  const login = (data) => {
+    // Assuming 'data' contains { token: "...", user: { name: "Swastik", ... } }
+    setToken(data.token);
+    setUser(data.user); // Set the real user data
+    localStorage.setItem('user', JSON.stringify(data.user)); // Save user to storage
   };
 
   const logout = () => {
     setToken(null);
+    setUser(null);
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
   };
 
   return (
