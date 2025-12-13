@@ -10,8 +10,8 @@ const register = async (req, res) => {
     const { email, password, role } = req.body;
 
     // Check if user exists
-    if(await User.findOne({email})){
-      return res.status(400).json({ message: 'User already exists'})
+    if (await User.findOne({ email })) {
+      return res.status(400).json({ message: 'User already exists' })
     }
     // Create and save the user to MongoDB
     const user = await User.create({ email, password, role });
@@ -48,10 +48,16 @@ const loginUser = async (req, res) => {
     // 3. Generate JWT token using model method
     const token = user.getSignedJwtToken();
 
-    // 4. Return 200 with token
+    // 4. Return 200 with token and user information
     res.status(200).json({
+      success: true,
       message: 'Login successful',
       token,
+      user: {
+        id: user._id,
+        email: user.email,
+        role: user.role,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: 'Server error', error: error.message });
