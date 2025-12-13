@@ -371,3 +371,56 @@ describe('DELETE /api/sweets/:id', () => {
     expect(sweet).toBeNull();
   });
 });
+
+describe('POST /api/sweets/:id/purchase', () => {
+  let token;
+  let sweetId;
+
+  beforeEach(async () => {
+    // 1. Register and Login as a regular User
+    const userData = { email: 'buyer@example.com', password: 'password123', role: 'user' };
+    await request(app).post('/api/auth/register').send(userData);
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email, password: userData.password
+    });
+    token = loginRes.body.token;
+
+    // 2. Create a Sweet with known stock (Stock: 5)
+    // We use the model directly to avoid needing admin permissions for setup
+    const sweet = await Sweet.create({
+      name: 'Besan Ladoo',
+      price: 20,
+      stock: 5
+    });
+    sweetId = sweet._id;
+  });
+
+  it('should decrease sweet stock on purchase', async () => {
+    // Buy 2 sweets
+    const res = await request(app)
+      .post(`/api/sweets/${sweetId}/purchase`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 2 });
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.stock).toEqual(3); // 5 - 2 = 3
+
+    // Verify in Database
+    const dbSweet = await Sweet.findById(sweetId);
+    expect(dbSweet.stock).toEqual(3);
+  });
+
+  it('should return 400 if out of stock', async () => {
+    // Manually set stock to 0
+    await Sweet.findByIdAndUpdate(sweetId, { stock: 0 });
+
+    const res = await request(app)
+      .post(`/api/sweets/${sweetId}/purchase`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ quantity: 1 });
+
+    expect(res.statusCode).toEqual(400);
+    expect(res.body.message).toMatch(/out of stock/i);
+  });
+});
