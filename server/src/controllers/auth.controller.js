@@ -1,6 +1,5 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
 
 /**
  * Register a new user
@@ -42,12 +41,8 @@ const loginUser = async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // 3. Sign JWT token with user ID as payload
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET,
-      { expiresIn: '1d' }
-    );
+    // 3. Generate JWT token using model method
+    const token = user.getSignedJwtToken();
 
     // 4. Return 200 with token
     res.status(200).json({
