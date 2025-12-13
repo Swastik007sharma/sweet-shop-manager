@@ -7,10 +7,8 @@ const Sweet = require('../models/sweet.model');
  */
 const createSweet = async (req, res) => {
   try {
-    // Extract sweet data from request body
     const { name, price, description, imageUrl, stock } = req.body;
 
-    // Validate required fields
     if (!name || !name.trim()) {
       return res.status(400).json({
         success: false,
@@ -25,7 +23,6 @@ const createSweet = async (req, res) => {
       });
     }
 
-    // Validate price is a number and non-negative
     if (typeof price !== 'number' || isNaN(price) || price < 0) {
       return res.status(400).json({
         success: false,
@@ -33,7 +30,6 @@ const createSweet = async (req, res) => {
       });
     }
 
-    // Create and save the sweet to MongoDB
     const sweet = await Sweet.create({
       name,
       price,
@@ -42,7 +38,6 @@ const createSweet = async (req, res) => {
       stock,
     });
 
-    // Return the saved sweet object
     res.status(201).json({
       success: true,
       message: 'Sweet created successfully',
@@ -57,4 +52,28 @@ const createSweet = async (req, res) => {
   }
 };
 
-module.exports = { createSweet };
+/**
+ * Get all sweets
+ * @route GET /api/sweets
+ * @access Protected
+ */
+const getSweets = async (req, res) => {
+  try {
+    // Fetch all sweets from the database
+    const sweets = await Sweet.find();
+
+    res.status(200).json({
+      success: true,
+      count: sweets.length,
+      data: sweets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { createSweet, getSweets };
