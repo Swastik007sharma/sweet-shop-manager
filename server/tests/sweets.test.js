@@ -258,3 +258,60 @@ describe('GET /api/sweets/search', () => {
     expect(res.body.data.length).toBe(2);
   });
 });
+
+describe('PUT /api/sweets/:id', () => {
+  let token;
+  let sweetId;
+
+  // Setup: Create a user and a sweet before testing update
+  beforeEach(async () => {
+    // 1. Login
+    const userData = { email: 'manager@example.com', password: 'password123', role: 'admin' };
+    await request(app).post('/api/auth/register').send(userData);
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email, password: userData.password
+    });
+    token = loginRes.body.token;
+
+    // 2. Create a sweet to update
+    const sweet = await Sweet.create({
+      name: 'Old Ladoo',
+      price: 10,
+      description: 'Stale sweet',
+      stock: 5
+    });
+    sweetId = sweet._id;
+  });
+
+  it('should update a sweet details', async () => {
+    const updatedData = {
+      name: 'Fresh Ladoo',
+      price: 20,
+      description: 'Freshly made sweet'
+    };
+
+    const res = await request(app)
+      .put(`/api/sweets/${sweetId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send(updatedData);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.name).toEqual('Fresh Ladoo');
+    expect(res.body.data.price).toEqual(20);
+    
+    // Verify in Database
+    const dbSweet = await Sweet.findById(sweetId);
+    expect(dbSweet.price).toEqual(20);
+  });
+
+  it('should return 404 if sweet not found', async () => {
+    const fakeId = new mongoose.Types.ObjectId();
+    const res = await request(app)
+      .put(`/api/sweets/${fakeId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Ghost Sweet' });
+
+    expect(res.statusCode).toEqual(404);
+  });
+});
