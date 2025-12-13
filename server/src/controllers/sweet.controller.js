@@ -121,4 +121,37 @@ const searchSweets = async (req, res) => {
   }
 };
 
-module.exports = { createSweet, getSweets, searchSweets };
+/**
+ * Update a sweet
+ * @route PUT /api/sweets/:id
+ * @access Protected
+ */
+const updateSweet = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    // findByIdAndUpdate(id, data, options)
+    // new: true -> returns the updated document instead of the old one
+    // runValidators: true -> ensures updates follow the schema rules (e.g. min price)
+    const sweet = await Sweet.findByIdAndUpdate(id, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!sweet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sweet not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: sweet,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { createSweet, getSweets, searchSweets, updateSweet };
