@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
+import api from '../utils/axios';
 
 const Register = () => {
   const [email, setEmail] = useState('');
@@ -16,7 +16,7 @@ const Register = () => {
 
     try {
       // Default role is 'user' as per backend requirements
-      const res = await axios.post('/api/auth/register', {
+      const res = await api.post('/auth/register', {
         email,
         password,
         role: 'user', 
