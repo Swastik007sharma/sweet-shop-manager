@@ -20,7 +20,7 @@ const Login = () => {
         password,
       });
 
-      if (res.data.success) {
+      if (res.status === 200) {
         login(res.data);
         navigate('/');
       }
