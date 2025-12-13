@@ -7,7 +7,7 @@ const Sweet = require('../models/sweet.model');
  */
 const createSweet = async (req, res) => {
   try {
-    const { name, price, description, imageUrl, stock } = req.body;
+    const { name, price, description, category, imageUrl, stock } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({
@@ -34,6 +34,7 @@ const createSweet = async (req, res) => {
       name,
       price,
       description,
+      category,
       imageUrl,
       stock,
     });
@@ -189,7 +190,7 @@ const purchaseSweet = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { quantity } = req.body;
-    
+
     // Default to purchasing 1 if quantity not provided
     const qtyToBuy = quantity || 1;
 
@@ -264,11 +265,11 @@ const restockSweet = async (req, res, next) => {
   }
 };
 
-module.exports = { 
-  createSweet, 
-  getSweets, 
-  searchSweets, 
-  updateSweet, 
+module.exports = {
+  createSweet,
+  getSweets,
+  searchSweets,
+  updateSweet,
   deleteSweet,
   purchaseSweet,
   restockSweet
