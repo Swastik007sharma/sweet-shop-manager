@@ -78,7 +78,7 @@ const getSweets = async (req, res) => {
 
 /**
  * Search sweets
- * @route GET api/sweets/search 
+ * @route GET api/sweets/search
  * @access Protected
  */
 const searchSweets = async (req, res) => {
@@ -154,4 +154,36 @@ const updateSweet = async (req, res, next) => {
   }
 };
 
-module.exports = { createSweet, getSweets, searchSweets, updateSweet };
+/**
+ * Delete a sweet
+ * @route DELETE /api/sweets/:id
+ * @access Private (Admin only)
+ */
+const deleteSweet = async (req, res, next) => {
+  try {
+    const sweet = await Sweet.findByIdAndDelete(req.params.id);
+
+    if (!sweet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sweet not found',
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {},
+      message: 'Sweet deleted successfully',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  createSweet,
+  getSweets,
+  searchSweets,
+  updateSweet,
+  deleteSweet,
+};
