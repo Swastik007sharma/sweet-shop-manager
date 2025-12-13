@@ -206,3 +206,55 @@ describe('GET /api/sweets', () => {
     expect(res.body.data[0].name).toEqual('Mysore Pak');
   });
 });
+
+describe('GET /api/sweets/search', () => {
+  let token;
+
+  // Setup: Create a user and some sweets before running search tests
+  beforeEach(async () => {
+    // 1. Create Admin User & Login
+    const userData = { email: 'searcher@example.com', password: 'password123', role: 'user' };
+    await request(app).post('/api/auth/register').send(userData);
+    const loginRes = await request(app).post('/api/auth/login').send({
+      email: userData.email, password: userData.password
+    });
+    token = loginRes.body.token;
+
+    // 2. Seed Database with Sweets (including Category)
+    await Sweet.create([
+      { name: 'Kaju Katli', category: 'Burfi', price: 1000, stock: 50 },
+      { name: 'Rasgulla', category: 'Syrup', price: 50, stock: 100 },
+      { name: 'Mysore Pak', category: 'Ghee', price: 60, stock: 20 }
+    ]);
+  });
+
+  it('should search for sweets by name', async () => {
+    const res = await request(app)
+      .get('/api/sweets/search?name=Kaju')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].name).toEqual('Kaju Katli');
+  });
+
+  it('should search for sweets by category', async () => {
+    const res = await request(app)
+      .get('/api/sweets/search?category=Syrup')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.data.length).toBe(1);
+    expect(res.body.data[0].name).toEqual('Rasgulla');
+  });
+
+  it('should search for sweets by price range', async () => {
+    // Search for sweets between price 40 and 70 (Should find Rasgulla 50 and Mysore Pak 60)
+    const res = await request(app)
+      .get('/api/sweets/search?minPrice=40&maxPrice=70')
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(res.statusCode).toEqual(200);
+    expect(res.body.data.length).toBe(2);
+  });
+});
