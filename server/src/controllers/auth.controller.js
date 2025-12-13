@@ -9,6 +9,10 @@ const register = async (req, res) => {
   try {
     const { email, password, role } = req.body;
 
+    // Check if user exists
+    if(await User.findOne({email})){
+      return res.status(400).json({ message: 'User already exists'})
+    }
     // Create and save the user to MongoDB
     const user = await User.create({ email, password, role });
 
