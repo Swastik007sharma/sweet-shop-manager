@@ -180,10 +180,55 @@ const deleteSweet = async (req, res, next) => {
   }
 };
 
-module.exports = {
-  createSweet,
-  getSweets,
-  searchSweets,
-  updateSweet,
+/**
+ * Purchase a sweet
+ * @route POST /api/sweets/:id/purchase
+ * @access Protected
+ */
+const purchaseSweet = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body;
+    
+    // Default to purchasing 1 if quantity not provided
+    const qtyToBuy = quantity || 1;
+
+    const sweet = await Sweet.findById(id);
+
+    if (!sweet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sweet not found',
+      });
+    }
+
+    // Check availability
+    if (sweet.stock < qtyToBuy) {
+      return res.status(400).json({
+        success: false,
+        message: 'Out of stock or insufficient quantity',
+      });
+    }
+
+    // Decrease stock and save
+    sweet.stock -= qtyToBuy;
+    await sweet.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Purchase successful',
+      data: sweet,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { 
+  createSweet, 
+  getSweets, 
+  searchSweets, 
+  updateSweet, 
   deleteSweet,
+  purchaseSweet
 };

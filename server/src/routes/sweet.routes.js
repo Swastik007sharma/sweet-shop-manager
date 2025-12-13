@@ -1,5 +1,5 @@
 const express = require('express');
-const { createSweet, getSweets, searchSweets, updateSweet, deleteSweet } = require('../controllers/sweet.controller');
+const { createSweet, getSweets, searchSweets, updateSweet, deleteSweet, purchaseSweet } = require('../controllers/sweet.controller');
 const { protect, authorize } = require('../middleware/auth.middleware');
 
 const router = express.Router();
@@ -11,5 +11,8 @@ router.put('/:id', protect, updateSweet);
 
 // Admin only route
 router.delete('/:id', protect, authorize('admin'), deleteSweet);
+
+// Inventory routes
+router.post('/:id/purchase', protect, purchaseSweet);
 
 module.exports = router;
