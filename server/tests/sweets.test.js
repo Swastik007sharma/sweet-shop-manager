@@ -315,3 +315,59 @@ describe('PUT /api/sweets/:id', () => {
     expect(res.statusCode).toEqual(404);
   });
 });
+
+describe('DELETE /api/sweets/:id', () => {
+  let adminToken;
+  let userToken;
+  let sweetId;
+
+  beforeEach(async () => {
+    // 1. Create Admin
+    await request(app).post('/api/auth/register').send({
+      email: 'admin@example.com', password: 'password123', role: 'admin'
+    });
+    const adminLogin = await request(app).post('/api/auth/login').send({
+      email: 'admin@example.com', password: 'password123'
+    });
+    adminToken = adminLogin.body.token;
+
+    // 2. Create Regular User
+    await request(app).post('/api/auth/register').send({
+      email: 'user@example.com', password: 'password123', role: 'user'
+    });
+    const userLogin = await request(app).post('/api/auth/login').send({
+      email: 'user@example.com', password: 'password123'
+    });
+    userToken = userLogin.body.token;
+
+    // 3. Create Sweet (using Admin token to be safe)
+    const sweet = await Sweet.create({
+      name: 'Badam Halwa',
+      price: 200,
+      stock: 10
+    });
+    sweetId = sweet._id;
+  });
+
+  it('should return 403 if non-admin tries to delete', async () => {
+    const res = await request(app)
+      .delete(`/api/sweets/${sweetId}`)
+      .set('Authorization', `Bearer ${userToken}`);
+
+    expect(res.statusCode).toEqual(403); // Forbidden
+    // Verify sweet still exists
+    const sweet = await Sweet.findById(sweetId);
+    expect(sweet).toBeTruthy();
+  });
+
+  it('should allow admin to delete sweet', async () => {
+    const res = await request(app)
+      .delete(`/api/sweets/${sweetId}`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.statusCode).toEqual(200);
+    // Verify sweet is gone
+    const sweet = await Sweet.findById(sweetId);
+    expect(sweet).toBeNull();
+  });
+});
