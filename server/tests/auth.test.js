@@ -105,4 +105,33 @@ describe('POST /api/auth/login', () => {
     expect(res.body).toHaveProperty('message');
     expect(res.body.message).toMatch(/invalid|credentials|unauthorized/i);
   });
+
+  it('should return user information along with token on successful login', async () => {
+    // Setup: Register a user first
+    const userData = {
+      email: 'userinfo@example.com',
+      password: 'password123',
+      role: 'admin',
+    };
+
+    await request(app).post('/api/auth/register').send(userData);
+
+    // Execution: Login with correct credentials
+    const res = await request(app).post('/api/auth/login').send({
+      email: 'userinfo@example.com',
+      password: 'password123',
+    });
+
+    // Assertion: Expect 200 OK with token AND user object
+    expect(res.statusCode).toEqual(200);
+    expect(res.body).toHaveProperty('token');
+    expect(res.body).toHaveProperty('user');
+    expect(res.body.user).toHaveProperty('id');
+    expect(res.body.user).toHaveProperty('email');
+    expect(res.body.user).toHaveProperty('role');
+    expect(res.body.user.email).toEqual('userinfo@example.com');
+    expect(res.body.user.role).toEqual('admin');
+    // Should NOT return password
+    expect(res.body.user).not.toHaveProperty('password');
+  });
 });
