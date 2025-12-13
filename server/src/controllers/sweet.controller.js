@@ -76,4 +76,49 @@ const getSweets = async (req, res) => {
   }
 };
 
-module.exports = { createSweet, getSweets };
+/**
+ * Search sweets
+ * @route GET api/sweets/search 
+ * @access Protected
+ */
+const searchSweets = async (req, res) => {
+  try {
+    const { name, category, minPrice, maxPrice } = req.query;
+
+    // Build the query object
+    let query = {};
+
+    // 1. Search by Name (Partial match, case-insensitive)
+    if (name) {
+      query.name = { $regex: name, $options: 'i' };
+    }
+
+    // 2. Search by Category (Case-insensitive)
+    if (category) {
+      query.category = { $regex: category, $options: 'i' };
+    }
+
+    // 3. Filter by Price Range
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+
+    const sweets = await Sweet.find(query);
+
+    res.status(200).json({
+      success: true,
+      count: sweets.length,
+      data: sweets,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+};
+
+module.exports = { createSweet, getSweets, searchSweets };
