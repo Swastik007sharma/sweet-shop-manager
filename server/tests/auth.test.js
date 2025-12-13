@@ -40,6 +40,24 @@ describe('POST /api/auth/register', () => {
     expect(userInDb).toBeTruthy();
     expect(userInDb.email).toEqual('realuser@example.com');
   });
+
+  it('should return 400 if the email is already registered', async () => {
+    const user = {
+      email: 'duplicate@test.com',
+      password: 'password123',
+      role: 'user'
+    };
+
+    // 1. Setup: Register the user for the first time
+    await request(app).post('/api/auth/register').send(user);
+
+    // 2. Execution: Try to register the same user again
+    const res = await request(app).post('/api/auth/register').send(user);
+
+    // 3. Assertion: Expect 400 Bad Request (not 201 or 500)
+    expect(res.statusCode).toEqual(400);
+    expect(res.body).toHaveProperty('message', 'User already exists');
+  });
 });
 
 describe('POST /api/auth/login', () => {
