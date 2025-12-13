@@ -224,11 +224,52 @@ const purchaseSweet = async (req, res, next) => {
   }
 };
 
+/**
+ * Restock a sweet
+ * @route POST /api/sweets/:id/restock
+ * @access Private (Admin only)
+ */
+const restockSweet = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { quantity } = req.body;
+
+    if (!quantity || quantity <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid quantity to restock',
+      });
+    }
+
+    const sweet = await Sweet.findById(id);
+
+    if (!sweet) {
+      return res.status(404).json({
+        success: false,
+        message: 'Sweet not found',
+      });
+    }
+
+    // Increase stock
+    sweet.stock += Number(quantity);
+    await sweet.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Sweet restocked successfully',
+      data: sweet,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = { 
   createSweet, 
   getSweets, 
   searchSweets, 
   updateSweet, 
   deleteSweet,
-  purchaseSweet
+  purchaseSweet,
+  restockSweet
 };
