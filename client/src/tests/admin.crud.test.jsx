@@ -181,8 +181,8 @@ describe('Admin CRUD Operations', () => {
           '/sweets',
           expect.objectContaining({
             name: 'New Sweet',
-            price: '100',
-            stock: '10',
+            price: 100,
+            stock: 10,
             category: 'Bengali',
             description: 'Delicious'
           }),
