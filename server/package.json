@@ -10,6 +10,7 @@
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "test": "cross-env NODE_ENV=test jest --watch --detectOpenHandles",
+    "test:coverage": "cross-env NODE_ENV=test jest --coverage --detectOpenHandles",
     "format": "prettier --write ."
   },
   "dependencies": {
